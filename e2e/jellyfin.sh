@@ -82,14 +82,18 @@ up() {
   library Series tvshows /media/shows "Series Season Episode"
   [ -d "$MEDIA/movies" ] && library Movies movies /media/movies "Movie"
 
-  for _ in $(seq 180); do
-    if curl -sf "$URL/Items?Recursive=true&IncludeItemTypes=Episode" -H "Authorization: $AUTH" | grep -q "\"TotalRecordCount\":$EXPECTED"; then
+  # A busy CI host can take minutes, and can miss files on the first scan: rescan every minute.
+  local found=""
+  for i in $(seq 300); do
+    found=$(curl -sf "$URL/Items?Recursive=true&IncludeItemTypes=Episode&Limit=0" -H "Authorization: $AUTH" | sed -E 's/.*"TotalRecordCount":([0-9]+).*/\1/')
+    if [ "$found" = "$EXPECTED" ]; then
       echo "Jellyfin ready on $URL"
       return 0
     fi
+    [ $((i % 60)) -eq 0 ] && curl -sf -X POST "$URL/Library/Refresh" -H "Authorization: $AUTH"
     sleep 1
   done
-  echo "library scan did not finish" >&2
+  echo "library scan did not finish: $found of $EXPECTED episodes" >&2
   return 1
 }
 
