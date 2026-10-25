@@ -38,7 +38,7 @@ npm run build    # static files in dist/, host them anywhere
 
 ## Requirements
 
-- Jellyfin **10.9 or newer**. Tested on 10.11.
+- Jellyfin **10.10 or newer**. Tested on 10.11.0 and 12.3.0.
 - In your Jellyfin user settings, **Remember audio selections** and **Remember subtitle selections** must be on (the default), and the subtitle mode must not be *None*. PastaFinn detects this and offers to fix it for you.
 - The server must accept requests from the page's origin (CORS). Jellyfin does by default. If you put a reverse proxy in front of it, make sure the proxy does not strip the CORS headers.
 - If a Jellyfin app still switches tracks on its own, turn off *Set audio/subtitle track based on previous item* in that app's playback settings.
@@ -48,8 +48,14 @@ npm run build    # static files in dist/, host them anywhere
 Jellyfin remembers, per user and per item, the audio and subtitle streams last chosen in a player (`UserData.AudioStreamIndex` / `SubtitleStreamIndex`), and uses them the next time the item plays. There is no API to set these directly, so PastaFinn sends the same playback check-in a player would send:
 
 1. `GET /Shows/{id}/Episodes?fields=MediaSources` reads every episode's streams and the tracks Jellyfin currently picks for you.
-2. For each episode, `POST /Sessions/Playing/Progress` sends the matched `AudioStreamIndex` and `SubtitleStreamIndex` (`-1` means off), together with the episode's **current** resume position, so watched state and *Continue watching* stay as they were.
+2. For each episode, `POST /Sessions/Playing/Progress` sends the matched `AudioStreamIndex` and `SubtitleStreamIndex` (`-1` means off), together with the episode's **current** resume position, so watched state, play count and resume point stay as they were.
 3. At the end, a single `POST /Sessions/Playing/Stopped` (again with the current position) clears the "now playing" entry. Your dashboard's activity log shows one "finished playing" line.
+
+Why always send the position:
+- Jellyfin 10.10 and 10.11 only save a check-in that carries a position.
+- Jellyfin auto-stops idle sessions using the last reported position. A check-in without a position would let it mark the item as watched if the tab closed mid-batch.
+
+Side effect to know about: on Jellyfin 12, an episode you are **partway through** gets its "last played" date refreshed, so it can move up in *Continue watching*. Unwatched and finished episodes are untouched.
 
 Episodes whose duration Jellyfin does not know yet are skipped: for those items, Jellyfin would treat any check-in as a full play.
 
