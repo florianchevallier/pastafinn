@@ -41,7 +41,7 @@ test('sets French audio and full French subtitles for a whole series without tou
   await page.getByRole('textbox', { name: 'Password' }).fill('e2e')
   await page.getByRole('button', { name: 'Sign in' }).click()
 
-  await page.getByRole('link', { name: 'Series' }).click()
+  await page.getByRole('searchbox', { name: 'Search a series or a movie' }).fill('test sh')
   await page.getByRole('link', { name: /Test Show/ }).click()
 
   const audio = page.getByRole('group', { name: 'Audio' })

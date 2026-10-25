@@ -80,8 +80,9 @@ function ServerStep({ onFound }: { onFound: (s: Server) => void }) {
     setError(null)
     setNotFound(false)
     // No try/finally here: React Compiler skips components that use it.
-    const found = await findServer(address).catch((err: unknown) => ({ error: err }))
-    setBusy(false)
+    const found = await findServer(address)
+      .catch((err: unknown) => ({ error: err }))
+      .finally(() => setBusy(false))
     if (!found) return setNotFound(true)
     if ('error' in found) return setError(found.error)
     rememberServer(address.trim())

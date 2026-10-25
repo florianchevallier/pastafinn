@@ -21,7 +21,7 @@ export function useLibraries() {
   })
 }
 
-export function useLibraryItems(libraryId: string, search: string) {
+export function useLibraryItems(libraryId: string | undefined, search: string) {
   const { api, session } = useApi()
   return useInfiniteQuery({
     queryKey: ['library', libraryId, search],

@@ -26,16 +26,19 @@ const appRoute = createRoute({
   errorComponent: RouteError,
 })
 
+const searchQuery = (s: Record<string, unknown>): { q?: string } => (typeof s.q === 'string' && s.q ? { q: s.q } : {})
+
 const homeRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/',
+  validateSearch: searchQuery,
   component: lazyRouteComponent(() => import('@/routes/HomePage'), 'HomePage'),
 })
 
 const libraryRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/library/$libraryId',
-  validateSearch: (s: Record<string, unknown>): { q?: string } => (typeof s.q === 'string' && s.q ? { q: s.q } : {}),
+  validateSearch: searchQuery,
   component: lazyRouteComponent(() => import('@/routes/LibraryPage'), 'LibraryPage'),
 })
 

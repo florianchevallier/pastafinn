@@ -26,9 +26,10 @@ export async function runBatch(plan: PlanEntry[], io: BatchIO) {
   io.onProgress(0, todo.length, { ...results })
 
   let last: PlanEntry | undefined
-  // Sequential on purpose: each check-in moves the session's "now playing" item.
-  for (const [i, p] of todo.entries()) {
-    if (io.signal.aborted) break
+  // One item after the other, never in parallel: each check-in moves the session's "now playing" item.
+  async function apply(i: number): Promise<void> {
+    const p = todo[i]
+    if (!p || io.signal.aborted) return
     try {
       await io.remember(p.item, p.audio, p.subtitle)
       results[p.item.Id!] = 'applied'
@@ -37,7 +38,9 @@ export async function runBatch(plan: PlanEntry[], io: BatchIO) {
       results[p.item.Id!] = 'failed'
     }
     io.onProgress(i + 1, todo.length, { ...results })
+    return apply(i + 1)
   }
+  await apply(0)
   // Best effort: a stale "now playing" entry is harmless since every check-in carried a position.
   if (last) await io.end(last.item).catch(() => {})
   return results

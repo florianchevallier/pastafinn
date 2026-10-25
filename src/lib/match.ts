@@ -22,12 +22,13 @@ const RULES: Array<(a: MediaStream, b: MediaStream) => boolean> = [
  */
 export function matchStream(reference: MediaStream, candidates: MediaStream[], keyword = ''): number | null {
   const kw = norm(keyword)
+  const hasKeyword = (s: MediaStream) => !kw || norm(s.Title).includes(kw) || norm(s.DisplayTitle).includes(kw)
   const pool = candidates.filter(
     (s) =>
       s.Type === reference.Type &&
       // Forced subtitles only cover foreign-language lines: never stand in for full ones, or the reverse.
       !!s.IsForced === !!reference.IsForced &&
-      (!kw || norm(s.Title).includes(kw) || norm(s.DisplayTitle).includes(kw)),
+      hasKeyword(s),
   )
   for (const rule of RULES) {
     const hits = pool.filter((s) => rule(reference, s))

@@ -1,6 +1,7 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useSearch } from '@tanstack/react-router'
 import { Film, Tv } from 'lucide-react'
 import { EmptyState, ErrorNote } from '@/components/States'
+import { SearchField, TitleGrid } from '@/components/Titles'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useI18n } from '@/lib/i18n'
 import { imageUrl, useApi } from '@/lib/jellyfin'
@@ -10,12 +11,16 @@ export function HomePage() {
   const { t } = useI18n()
   const { api } = useApi()
   const libraries = useLibraries()
+  const { q = '' } = useSearch({ from: '/app/' })
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <h1 className="text-2xl font-semibold tracking-[-0.02em]">{t('home.title')}</h1>
+      <SearchField q={q} label={t('home.search')} className="mx-auto max-w-2xl [&_input]:h-12 [&_input]:text-base" />
+      <h1 className="mt-10 text-2xl font-semibold tracking-[-0.02em]">{q ? t('home.results') : t('home.title')}</h1>
       <div className="mt-6">
-        {libraries.isPending ? (
+        {q ? (
+          <TitleGrid q={q} />
+        ) : libraries.isPending ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[0, 1, 2].map((i) => (
               <Skeleton key={i} className="aspect-[16/9] rounded-xl" />
