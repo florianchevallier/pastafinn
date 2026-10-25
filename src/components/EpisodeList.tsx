@@ -8,21 +8,28 @@ import { SUBTITLES_OFF } from '@/lib/match'
 import type { PlanEntry } from '@/lib/plan'
 import { currentTracks, groupBySeason, streamsOf } from '@/lib/plan'
 
-function trackPair(item: BaseItemDto, audio: number | null, subtitle: number, lang: Lang, off: string) {
+interface Labels {
+  off: string
+  forced: string
+  sdh: string
+}
+
+function trackPair(item: BaseItemDto, audio: number | null, subtitle: number, lang: Lang, labels: Labels) {
   const streams = streamsOf(item)
-  const a =
-    shortStream(
-      streams.find((s) => s.Index === audio),
-      lang,
-    ) ?? '—'
+  const a = shortStream(
+    streams.find((s) => s.Index === audio),
+    lang,
+    labels,
+  )
   const s =
     subtitle === SUBTITLES_OFF
-      ? off
-      : (shortStream(
+      ? labels.off
+      : shortStream(
           streams.find((x) => x.Index === subtitle),
           lang,
-        ) ?? '—')
-  return `${a} / ${s}`
+          labels,
+        )
+  return `${a ?? '—'} / ${s ?? '—'}`
 }
 
 export function EpisodeList({
@@ -40,7 +47,7 @@ export function EpisodeList({
 }) {
   const { t, lang } = useI18n()
   const planById = new Map(plan.map((p) => [p.item.Id!, p]))
-  const off = t('menu.off')
+  const labels = { off: t('menu.off'), forced: t('menu.forced'), sdh: t('menu.sdh') }
 
   return (
     <section
@@ -78,11 +85,11 @@ export function EpisodeList({
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm">{ep.Name}</p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {trackPair(ep, cur.audio, cur.subtitle, lang, off)}
+                        {trackPair(ep, cur.audio, cur.subtitle, lang, labels)}
                         {p && p.status === 'apply' && !result && (
                           <>
                             <ArrowRight className="mx-1 inline size-3 text-primary" aria-label={t('episodes.willGet')} />
-                            <span className="text-foreground">{trackPair(ep, p.audio, p.subtitle, lang, off)}</span>
+                            <span className="text-foreground">{trackPair(ep, p.audio, p.subtitle, lang, labels)}</span>
                           </>
                         )}
                       </p>
@@ -113,12 +120,20 @@ export function EpisodeList({
 
 function Status({ plan, result }: { plan?: PlanEntry; result?: ResultStatus }) {
   const { t } = useI18n()
-  const status = result ?? (plan?.status === 'noMatch' ? 'noMatch' : plan?.status === 'noRuntime' ? 'skipped' : undefined)
+  // Before applying, also warn when only one of the two tracks has a match in this episode.
+  const partial = !result && plan?.status === 'apply' && (plan.audioMissing || plan.subtitleMissing)
+  const status =
+    result ?? (partial ? 'partial' : plan?.status === 'noMatch' ? 'noMatch' : plan?.status === 'noRuntime' ? 'skipped' : undefined)
   if (!status) return null
   const map = {
     applied: { Icon: Check, cls: 'text-success', label: t('episodes.applied') },
     unchanged: { Icon: Check, cls: 'text-muted-foreground', label: t('episodes.unchanged') },
     noMatch: { Icon: CircleAlert, cls: 'text-warning', label: t('episodes.noMatch') },
+    partial: {
+      Icon: CircleAlert,
+      cls: 'text-warning',
+      label: t(plan?.audioMissing ? 'episodes.noAudioMatch' : 'episodes.noSubtitleMatch'),
+    },
     skipped: { Icon: CircleMinus, cls: 'text-muted-foreground', label: `${t('episodes.skipped')}: ${t('menu.noRuntime')}` },
     failed: { Icon: CircleX, cls: 'text-destructive', label: t('episodes.failed') },
   }[status]

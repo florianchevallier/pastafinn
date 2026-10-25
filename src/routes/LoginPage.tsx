@@ -40,7 +40,7 @@ export function LoginPage() {
   return (
     <div className="relative grid min-h-dvh place-items-center overflow-hidden px-4 py-12">
       {/* the disc, huge and quiet, behind the menu */}
-      <DiscMark className="pointer-events-none absolute -right-40 -bottom-40 size-[34rem] text-foreground/[0.05] sm:-right-24" />
+      <DiscMark muted className="pointer-events-none absolute -right-40 -bottom-40 size-[34rem] text-foreground/[0.05] sm:-right-24" />
       <div className="absolute top-4 right-4">
         <LangSwitch />
       </div>

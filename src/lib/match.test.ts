@@ -32,6 +32,11 @@ describe('matchStream', () => {
     expect(matchStream(forced, eps)).toBe(4)
   })
 
+  it('never falls back from full to forced subtitles, even with the same title', () => {
+    const full = sub(5, { Language: 'fra', Title: 'Français' })
+    expect(matchStream(full, [sub(3, { Language: 'fra', Title: 'Français', IsForced: true })])).toBeNull()
+  })
+
   it('breaks ties with the reference index', () => {
     const r = sub(4, { Language: 'eng' })
     expect(matchStream(r, [sub(3, { Language: 'eng' }), sub(4, { Language: 'eng' })])).toBe(4)

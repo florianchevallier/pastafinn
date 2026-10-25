@@ -75,11 +75,11 @@ function Backdrop({ item }: { item: BaseItemDto }) {
       <img
         src={src}
         alt=""
-        className="size-full object-cover object-top opacity-55 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-700"
+        className="size-full object-cover object-top opacity-70 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-700"
       />
       {/* vignette: guarantees AA contrast for text whatever the image brightness */}
-      <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/20" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/10" />
+      <div className="absolute inset-0 bg-gradient-to-r from-background via-background/75 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/45 to-transparent" />
     </div>
   )
 }

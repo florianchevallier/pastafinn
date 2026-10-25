@@ -63,10 +63,12 @@ export function describeStream(s: MediaStream, lang: Lang) {
   }
 }
 
-/** Short label for chips: language code, or title. */
-export function shortStream(s: MediaStream | undefined, lang: Lang) {
+/** Short label for the episode list: the language, flagged when the track is forced or SDH. */
+export function shortStream(s: MediaStream | undefined, lang: Lang, flags: { forced: string; sdh: string }) {
   if (!s) return null
-  return languageName(s.Language, lang) ?? s.Title ?? `#${s.Index}`
+  const name = languageName(s.Language, lang) ?? s.Title ?? `#${s.Index}`
+  if (s.IsForced) return `${name} (${flags.forced.toLowerCase()})`
+  return s.IsHearingImpaired ? `${name} (${flags.sdh})` : name
 }
 
 export function episodeCode(ep: BaseItemDto) {

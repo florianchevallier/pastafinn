@@ -1,13 +1,14 @@
 import { cn } from 'cn'
 
-/** A disc seen from above: the menu lives on it. */
-export function DiscMark({ className }: { className?: string }) {
+/** A disc seen from above: the menu lives on it. `muted` drops the gold accent, for decorative use. */
+export function DiscMark({ className, muted }: { className?: string; muted?: boolean }) {
+  const accent = muted ? 'currentColor' : 'var(--primary)'
   return (
     <svg viewBox="0 0 32 32" aria-hidden="true" className={cn('size-6', className)}>
       <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" strokeWidth="2" />
       <circle cx="16" cy="16" r="9" fill="none" stroke="currentColor" strokeOpacity=".35" strokeWidth="1" />
-      <circle cx="16" cy="16" r="3.2" fill="var(--primary)" />
-      <path d="M16 2a14 14 0 0 1 12.12 7" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="16" cy="16" r="3.2" fill={accent} />
+      <path d="M16 2a14 14 0 0 1 12.12 7" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" />
     </svg>
   )
 }
