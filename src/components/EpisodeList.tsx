@@ -1,17 +1,27 @@
-import { Check, CircleAlert, CircleMinus, CircleX, ArrowRight, Crosshair } from 'lucide-react'
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client/models'
+import { cn } from 'cn'
+import { ArrowRight, Check, CircleAlert, CircleMinus, CircleX, Crosshair } from 'lucide-react'
+import type { ResultStatus } from '@/lib/batch'
+import { episodeCode, shortStream } from '@/lib/format'
+import { type Lang, useI18n } from '@/lib/i18n'
+import { SUBTITLES_OFF } from '@/lib/match'
 import type { PlanEntry } from '@/lib/plan'
 import { currentTracks, groupBySeason, streamsOf } from '@/lib/plan'
-import { SUBTITLES_OFF } from '@/lib/match'
-import { episodeCode, shortStream } from '@/lib/format'
-import { useI18n, type Lang } from '@/lib/i18n'
-import type { ResultStatus } from '@/hooks/useBatchApply'
-import { cn } from '@/lib/utils'
 
 function trackPair(item: BaseItemDto, audio: number | null, subtitle: number, lang: Lang, off: string) {
   const streams = streamsOf(item)
-  const a = shortStream(streams.find((s) => s.Index === audio), lang) ?? '—'
-  const s = subtitle === SUBTITLES_OFF ? off : (shortStream(streams.find((x) => x.Index === subtitle), lang) ?? '—')
+  const a =
+    shortStream(
+      streams.find((s) => s.Index === audio),
+      lang,
+    ) ?? '—'
+  const s =
+    subtitle === SUBTITLES_OFF
+      ? off
+      : (shortStream(
+          streams.find((x) => x.Index === subtitle),
+          lang,
+        ) ?? '—')
   return `${a} / ${s}`
 }
 
@@ -33,14 +43,22 @@ export function EpisodeList({
   const off = t('menu.off')
 
   return (
-    <section aria-labelledby="episodes-title" className="flex min-h-0 flex-col rounded-2xl border border-border bg-background/60 backdrop-blur-xl lg:max-h-[calc(100dvh-8rem)] lg:sticky lg:top-20">
-      <h2 id="episodes-title" className="border-b border-border px-5 py-4 text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+    <section
+      aria-labelledby="episodes-title"
+      className="flex min-h-0 flex-col rounded-2xl border border-border bg-background/60 backdrop-blur-xl lg:max-h-[calc(100dvh-8rem)] lg:sticky lg:top-20"
+    >
+      <h2
+        id="episodes-title"
+        className="border-b border-border px-5 py-4 text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase"
+      >
         {t('episodes.title')}
       </h2>
       <div className="min-h-0 overflow-y-auto">
         {groupBySeason(pool).map(([season, eps]) => (
           <div key={season}>
-            <h3 className="sticky top-0 z-10 bg-background/95 px-5 py-2 text-sm font-medium backdrop-blur">{eps[0].SeasonName ?? `S${season}`}</h3>
+            <h3 className="sticky top-0 z-10 bg-background/95 px-5 py-2 text-sm font-medium backdrop-blur">
+              {eps[0].SeasonName ?? `S${season}`}
+            </h3>
             <ul>
               {eps.map((ep) => {
                 const p = planById.get(ep.Id!)
@@ -48,7 +66,14 @@ export function EpisodeList({
                 const cur = currentTracks(ep)
                 const isRef = ep.Id === referenceId
                 return (
-                  <li key={ep.Id} className={cn('group flex items-center gap-3 border-t border-border/50 px-5 py-2.5', isRef && 'bg-primary/[0.07]', !p && 'opacity-55')}>
+                  <li
+                    key={ep.Id}
+                    className={cn(
+                      'group flex items-center gap-3 border-t border-border/50 px-5 py-2.5',
+                      isRef && 'bg-primary/[0.07]',
+                      !p && 'opacity-55',
+                    )}
+                  >
                     <span className="w-16 shrink-0 font-mono text-xs text-muted-foreground tabular">{episodeCode(ep) ?? '—'}</span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm">{ep.Name}</p>

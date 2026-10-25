@@ -1,5 +1,5 @@
-import { useI18n, type Lang } from '@/lib/i18n'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
+import { type Lang, useI18n } from '@/lib/i18n'
 
 const LANGS: Array<{ id: Lang; label: string; name: string }> = [
   { id: 'en', label: 'EN', name: 'English' },
@@ -9,7 +9,8 @@ const LANGS: Array<{ id: Lang; label: string; name: string }> = [
 export function LangSwitch() {
   const { lang, setLang, t } = useI18n()
   return (
-    <div role="group" aria-label={t('common.language')} className="inline-flex rounded-lg border border-border p-0.5 text-xs font-medium">
+    <fieldset className="inline-flex rounded-lg border border-border p-0.5 text-xs font-medium">
+      <legend className="sr-only">{t('common.language')}</legend>
       {LANGS.map((l) => (
         <button
           key={l.id}
@@ -26,6 +27,6 @@ export function LangSwitch() {
           {l.label}
         </button>
       ))}
-    </div>
+    </fieldset>
   )
 }

@@ -1,12 +1,12 @@
-import type { ReactNode } from 'react'
 import { AlertCircle } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
-import { classifyError, getSession } from '@/lib/jellyfin'
 import { useI18n } from '@/lib/i18n'
+import { classifyError } from '@/lib/jellyfin'
 
 export function ErrorNote({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
   const { t } = useI18n()
-  const kind = classifyError(error, getSession()?.serverUrl)
+  const kind = classifyError(error)
   const message =
     kind === 'generic' ? t('error.generic', { message: error instanceof Error ? error.message : String(error) }) : t(`error.${kind}`)
   return (

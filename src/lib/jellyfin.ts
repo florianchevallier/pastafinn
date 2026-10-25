@@ -1,10 +1,11 @@
-import { useSyncExternalStore } from 'react'
-import { Jellyfin } from '@jellyfin/sdk/lib/jellyfin'
 import type { Api } from '@jellyfin/sdk/lib/api'
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client/models'
+import { Jellyfin } from '@jellyfin/sdk/lib/jellyfin'
 import { getAuthenticationApi } from '@jellyfin/sdk/lib/utils/api/authentication-api'
 import { getSessionApi } from '@jellyfin/sdk/lib/utils/api/session-api'
+import { getUserDataApi } from '@jellyfin/sdk/lib/utils/api/user-data-api'
 import { isAxiosError } from 'axios'
+import { useSyncExternalStore } from 'react'
 
 export interface Session {
   serverUrl: string
@@ -39,7 +40,7 @@ function deviceId() {
   return id
 }
 
-export const jellyfin = new Jellyfin({
+const jellyfin = new Jellyfin({
   clientInfo: { name: 'PastaFinn', version: __APP_VERSION__ },
   deviceInfo: { name: `PastaFinn (${navigator.userAgent.includes('Mobile') ? 'mobile' : 'browser'})`, id: deviceId() },
 })
@@ -59,14 +60,17 @@ export function setSession(next: Session | null) {
   } catch {
     // session lives in memory only
   }
-  listeners.forEach((l) => l())
+  for (const l of listeners) l()
 }
 
 export const getSession = () => session
 
 export function useSession() {
   return useSyncExternalStore(
-    (cb) => (listeners.add(cb), () => listeners.delete(cb)),
+    (cb) => {
+      listeners.add(cb)
+      return () => listeners.delete(cb)
+    },
     () => session,
   )
 }
@@ -82,21 +86,33 @@ export async function signOut() {
   const current = api
   setSession(null)
   // best effort: revoke the token server-side
-  if (current) await getSessionApi(current).reportSessionEnded().catch(() => {})
+  if (current)
+    await getSessionApi(current)
+      .reportSessionEnded()
+      .catch(() => {})
 }
 
 // --- errors ----------------------------------------------------------------
 
-export type ErrorKind = 'network' | 'mixedContent' | 'auth' | 'generic'
+export type ErrorKind = 'network' | 'auth' | 'generic'
 
-export function classifyError(err: unknown, serverUrl?: string): ErrorKind {
+export function classifyError(err: unknown): ErrorKind {
   if (isAxiosError(err)) {
     if (err.response?.status === 401) return 'auth'
-    if (!err.response) {
-      return location.protocol === 'https:' && serverUrl?.startsWith('http:') ? 'mixedContent' : 'network'
-    }
+    if (!err.response) return 'network'
   }
   return 'generic'
+}
+
+/**
+ * Browsers silently block http:// calls from an https:// page, so server discovery just finds nothing.
+ * An explicit http:// address or a LAN host is then the likely cause, worth saying instead of "not found".
+ */
+export function mayBeMixedContent(address: string, pageProtocol = location.protocol) {
+  if (pageProtocol !== 'https:') return false
+  const a = address.trim().toLowerCase()
+  if (a.startsWith('https://')) return false
+  return a.startsWith('http://') || /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|[^/:]+\.local\b)/.test(a)
 }
 
 // --- auth ------------------------------------------------------------------
@@ -108,7 +124,11 @@ export async function findServer(input: string) {
   return best?.systemInfo ? { url: best.address, name: best.systemInfo.ServerName ?? best.address } : null
 }
 
-function toSession(serverUrl: string, serverName: string, result: { AccessToken?: string | null; User?: { Id?: string; Name?: string | null } | null }): Session {
+function toSession(
+  serverUrl: string,
+  serverName: string,
+  result: { AccessToken?: string | null; User?: { Id?: string; Name?: string | null } | null },
+): Session {
   if (!result.AccessToken || !result.User?.Id) throw new Error('Incomplete authentication response')
   return { serverUrl, serverName, accessToken: result.AccessToken, userId: result.User.Id, userName: result.User.Name ?? '' }
 }
@@ -145,10 +165,19 @@ export async function startQuickConnect(serverUrl: string, serverName: string, s
 // --- writing tracks ----------------------------------------------------------
 
 /**
+ * The item's resume position as the server has it right now. Read just before each write:
+ * the page's copy can be hours old, and sending it back would rewind or overwrite a newer resume point.
+ */
+async function resumePosition(api: Api, item: BaseItemDto) {
+  const { data } = await getUserDataApi(api).getItemUserData({ itemId: item.Id! })
+  return data.PlaybackPositionTicks ?? 0
+}
+
+/**
  * Stores the remembered audio/subtitle stream for one item (per user).
  * Jellyfin has no endpoint for this; it persists the tracks reported in a playback check-in.
- * We report the item's own resume position so watched state and "Continue watching" stay put
- * (and Jellyfin 10.11.0 only saves a check-in that carries a position).
+ * We report the item's own resume position so watched state and resume point stay put
+ * (and Jellyfin 10.10/10.11 only save a check-in that carries a position).
  */
 export async function rememberTracks(api: Api, item: BaseItemDto, audioIndex: number | null, subtitleIndex: number) {
   await getSessionApi(api).reportPlaybackProgress({
@@ -157,7 +186,7 @@ export async function rememberTracks(api: Api, item: BaseItemDto, audioIndex: nu
       MediaSourceId: item.MediaSources?.[0]?.Id ?? item.Id!,
       AudioStreamIndex: audioIndex,
       SubtitleStreamIndex: subtitleIndex,
-      PositionTicks: item.UserData?.PlaybackPositionTicks ?? 0,
+      PositionTicks: await resumePosition(api, item),
       IsPaused: true,
       CanSeek: false,
     },
@@ -171,7 +200,7 @@ export async function endCheckIns(api: Api, item: BaseItemDto) {
       ItemId: item.Id!,
       MediaSourceId: item.MediaSources?.[0]?.Id ?? item.Id!,
       // Never omit: a stop without position marks the item as watched.
-      PositionTicks: item.UserData?.PlaybackPositionTicks ?? 0,
+      PositionTicks: await resumePosition(api, item),
     },
   })
 }
@@ -179,7 +208,12 @@ export async function endCheckIns(api: Api, item: BaseItemDto) {
 // --- images ------------------------------------------------------------------
 
 /** Image URL without the SDK's ImageApi class, which alone weighs more than the rest of the app. */
-export function imageUrl(api: Api, itemId: string, type: 'Primary' | 'Backdrop' | 'Logo', params: Record<string, string | number | undefined | null>) {
+export function imageUrl(
+  api: Api,
+  itemId: string,
+  type: 'Primary' | 'Backdrop' | 'Logo',
+  params: Record<string, string | number | undefined | null>,
+) {
   const query = new URLSearchParams(Object.entries(params).flatMap(([k, v]) => (v == null ? [] : [[k, String(v)]])))
   return `${api.basePath}/Items/${itemId}/Images/${type}?${query}`
 }

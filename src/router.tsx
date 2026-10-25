@@ -1,8 +1,8 @@
 import { createHashHistory, createRootRoute, createRoute, createRouter, lazyRouteComponent, Outlet, redirect } from '@tanstack/react-router'
-import { getSession } from '@/lib/jellyfin'
-import { LoginPage } from '@/routes/LoginPage'
 import { AppShell } from '@/components/AppShell'
 import { RouteError } from '@/components/States'
+import { getSession } from '@/lib/jellyfin'
+import { LoginPage } from '@/routes/LoginPage'
 
 const rootRoute = createRootRoute({ component: Outlet })
 
@@ -26,7 +26,11 @@ const appRoute = createRoute({
   errorComponent: RouteError,
 })
 
-const homeRoute = createRoute({ getParentRoute: () => appRoute, path: '/', component: lazyRouteComponent(() => import('@/routes/HomePage'), 'HomePage') })
+const homeRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/',
+  component: lazyRouteComponent(() => import('@/routes/HomePage'), 'HomePage'),
+})
 
 const libraryRoute = createRoute({
   getParentRoute: () => appRoute,
@@ -35,7 +39,11 @@ const libraryRoute = createRoute({
   component: lazyRouteComponent(() => import('@/routes/LibraryPage'), 'LibraryPage'),
 })
 
-const titleRoute = createRoute({ getParentRoute: () => appRoute, path: '/title/$itemId', component: lazyRouteComponent(() => import('@/routes/TitlePage'), 'TitlePage') })
+const titleRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/title/$itemId',
+  component: lazyRouteComponent(() => import('@/routes/TitlePage'), 'TitlePage'),
+})
 
 export const router = createRouter({
   routeTree: rootRoute.addChildren([loginRoute, appRoute.addChildren([homeRoute, libraryRoute, titleRoute])]),

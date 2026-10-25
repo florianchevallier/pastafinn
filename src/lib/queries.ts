@@ -1,4 +1,3 @@
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { BaseItemKind } from '@jellyfin/sdk/lib/generated-client/models/base-item-kind'
 import { ItemFields } from '@jellyfin/sdk/lib/generated-client/models/item-fields'
 import { ItemSortBy } from '@jellyfin/sdk/lib/generated-client/models/item-sort-by'
@@ -6,6 +5,7 @@ import { getLibraryApi } from '@jellyfin/sdk/lib/utils/api/library-api'
 import { getShowApi } from '@jellyfin/sdk/lib/utils/api/show-api'
 import { getUserApi } from '@jellyfin/sdk/lib/utils/api/user-api'
 import { getUserViewApi } from '@jellyfin/sdk/lib/utils/api/user-view-api'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { useApi } from './jellyfin'
 
 const PAGE = 60

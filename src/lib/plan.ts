@@ -11,7 +11,7 @@ export function groupBySeason(pool: BaseItemDto[]) {
   return [...map.entries()]
 }
 
-export const streamsOf =(item: BaseItemDto): MediaStream[] => item.MediaSources?.[0]?.MediaStreams ?? []
+export const streamsOf = (item: BaseItemDto): MediaStream[] => item.MediaSources?.[0]?.MediaStreams ?? []
 
 /** Tracks Jellyfin will currently pick for this user (remembered choice, else file/user defaults). */
 export function currentTracks(item: BaseItemDto) {
@@ -31,7 +31,7 @@ export interface Choice {
   keyword: string
 }
 
-export type PlanStatus = 'apply' | 'unchanged' | 'noMatch' | 'noRuntime'
+type PlanStatus = 'apply' | 'unchanged' | 'noMatch' | 'noRuntime'
 
 export interface PlanEntry {
   item: BaseItemDto
@@ -55,7 +55,13 @@ export function planFor(choice: Choice, targets: BaseItemDto[]): PlanEntry[] {
 
     const audioMatch = isRef ? choice.audio : refAudio ? matchStream(refAudio, streams, choice.keyword) : null
     const subMatch =
-      choice.subtitle === SUBTITLES_OFF ? SUBTITLES_OFF : isRef ? choice.subtitle : refSub ? matchStream(refSub, streams, choice.keyword) : null
+      choice.subtitle === SUBTITLES_OFF
+        ? SUBTITLES_OFF
+        : isRef
+          ? choice.subtitle
+          : refSub
+            ? matchStream(refSub, streams, choice.keyword)
+            : null
 
     const audioMissing = !!refAudio && audioMatch === null
     const subtitleMissing = choice.subtitle !== SUBTITLES_OFF && subMatch === null

@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
 import type { MediaStream } from '@jellyfin/sdk/lib/generated-client/models'
+import { describe, expect, it } from 'vitest'
 import { matchStream } from './match'
 
 const audio = (Index: number, s: Partial<MediaStream>): MediaStream => ({ Index, Type: 'Audio', ...s })
@@ -14,7 +14,10 @@ describe('matchStream', () => {
   })
 
   it('prefers title + language over a language-only hit', () => {
-    const eps = [audio(1, { Language: 'fra', Title: 'Commentary', Codec: 'ac3' }), audio(2, { Language: 'fra', Title: 'Français', Codec: 'aac' })]
+    const eps = [
+      audio(1, { Language: 'fra', Title: 'Commentary', Codec: 'ac3' }),
+      audio(2, { Language: 'fra', Title: 'Français', Codec: 'aac' }),
+    ]
     expect(matchStream(ref, eps)).toBe(2)
   })
 

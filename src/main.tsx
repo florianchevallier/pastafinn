@@ -1,8 +1,8 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
 import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from '@tanstack/react-router'
 import { isAxiosError } from 'axios'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { setSession } from '@/lib/jellyfin'
 import { router } from './router'
@@ -19,7 +19,11 @@ const queryClient = new QueryClient({
     },
   }),
   defaultOptions: {
-    queries: { staleTime: 30_000, refetchOnWindowFocus: false, retry: (n, err) => !(isAxiosError(err) && err.response?.status === 401) && n < 2 },
+    queries: {
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+      retry: (n, err) => !(isAxiosError(err) && err.response?.status === 401) && n < 2,
+    },
   },
 })
 

@@ -3,10 +3,13 @@ import type { Lang } from './i18n'
 
 const names = new Map<Lang, Intl.DisplayNames>()
 
-export function languageName(code: string | null | undefined, lang: Lang): string | null {
+function languageName(code: string | null | undefined, lang: Lang): string | null {
   if (!code || code === 'und') return null
   let dn = names.get(lang)
-  if (!dn) names.set(lang, (dn = new Intl.DisplayNames([lang], { type: 'language', fallback: 'none' })))
+  if (!dn) {
+    dn = new Intl.DisplayNames([lang], { type: 'language', fallback: 'none' })
+    names.set(lang, dn)
+  }
   try {
     const name = dn.of(code)
     return name ? name.charAt(0).toLocaleUpperCase(lang) + name.slice(1) : code.toUpperCase()
@@ -38,7 +41,7 @@ const CODECS: Record<string, string> = {
   mov_text: 'TX3G',
 }
 
-export const codecLabel = (codec: string | null | undefined) => (codec ? (CODECS[codec.toLowerCase()] ?? codec.toUpperCase()) : null)
+const codecLabel = (codec: string | null | undefined) => (codec ? (CODECS[codec.toLowerCase()] ?? codec.toUpperCase()) : null)
 
 function channels(s: MediaStream) {
   const layout = s.ChannelLayout?.replace(/\(.*\)/, '')

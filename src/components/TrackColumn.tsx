@@ -1,6 +1,6 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { cn } from 'cn'
 import { ChevronRight } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { type ReactNode, useLayoutEffect, useRef, useState } from 'react'
 
 export interface TrackOption {
   value: number
@@ -39,6 +39,7 @@ export function TrackColumn({
   const list = useRef<HTMLDivElement>(null)
   const [bar, setBar] = useState<{ top: number; height: number } | null>(null)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: value and options are the triggers to re-measure the checked row
   useLayoutEffect(() => {
     const el = list.current?.querySelector<HTMLElement>('[data-checked="true"]')
     setBar(el ? { top: el.offsetTop, height: el.offsetHeight } : null)
@@ -89,11 +90,14 @@ export function TrackColumn({
                   )}
                 />
                 <span className="min-w-0 flex-1">
-                  <span className={cn('flex flex-wrap items-baseline gap-x-2 text-[0.95rem] leading-snug', checked ? 'font-medium text-foreground' : 'text-foreground/85')}>
-                    <span className="break-words">{o.label}</span>
-                    {o.current && (
-                      <span className="text-[0.7rem] font-medium tracking-wide text-primary uppercase">{currentLabel}</span>
+                  <span
+                    className={cn(
+                      'flex flex-wrap items-baseline gap-x-2 text-[0.95rem] leading-snug',
+                      checked ? 'font-medium text-foreground' : 'text-foreground/85',
                     )}
+                  >
+                    <span className="break-words">{o.label}</span>
+                    {o.current && <span className="text-[0.7rem] font-medium tracking-wide text-primary uppercase">{currentLabel}</span>}
                   </span>
                   {(o.detail || o.tech || o.flags?.length) && (
                     <span className="mt-0.5 flex flex-wrap gap-x-2 text-xs text-muted-foreground">

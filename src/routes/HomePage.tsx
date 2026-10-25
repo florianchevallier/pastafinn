@@ -1,10 +1,10 @@
 import { Link } from '@tanstack/react-router'
 import { Film, Tv } from 'lucide-react'
-import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState, ErrorNote } from '@/components/States'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useI18n } from '@/lib/i18n'
 import { imageUrl, useApi } from '@/lib/jellyfin'
 import { useLibraries } from '@/lib/queries'
-import { useI18n } from '@/lib/i18n'
 
 export function HomePage() {
   const { t } = useI18n()

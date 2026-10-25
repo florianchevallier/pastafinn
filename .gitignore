@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 graft/
 .impeccable
+e2e/.data
+test-results
+playwright-report

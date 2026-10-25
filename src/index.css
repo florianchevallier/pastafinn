@@ -8,8 +8,8 @@
 
 @theme inline {
   --font-heading: var(--font-sans);
-  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -73,14 +73,14 @@
   }
   html {
     @apply font-sans antialiased;
-    font-feature-settings: 'ss01', 'cv11';
+    font-feature-settings: "ss01", "cv11";
   }
   body {
     @apply min-h-dvh bg-background text-foreground;
   }
   button:not(:disabled),
-  [role='button']:not(:disabled),
-  [role='radio']:not([aria-disabled='true']) {
+  [role="button"]:not(:disabled),
+  [role="radio"]:not([aria-disabled="true"]) {
     cursor: pointer;
   }
   ::selection {
@@ -110,7 +110,9 @@
   *,
   *::before,
   *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: reduced motion must win over every component animation */
     animation-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: same */
     transition-duration: 0.01ms !important;
   }
 }

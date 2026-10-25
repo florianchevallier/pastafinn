@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest'
 import type { BaseItemDto, MediaStream } from '@jellyfin/sdk/lib/generated-client/models'
-import { planFor } from './plan'
+import { describe, expect, it } from 'vitest'
 import { SUBTITLES_OFF } from './match'
+import { planFor } from './plan'
 
 const streams: MediaStream[] = [
   { Index: 1, Type: 'Audio', Language: 'eng', Codec: 'aac' },
@@ -9,7 +9,12 @@ const streams: MediaStream[] = [
   { Index: 3, Type: 'Subtitle', Language: 'eng' },
   { Index: 4, Type: 'Subtitle', Language: 'fra' },
 ]
-const ep = (Id: string, s = streams, extra: Partial<BaseItemDto> = {}, defaults = { a: 1, s: undefined as number | undefined }): BaseItemDto => ({
+const ep = (
+  Id: string,
+  s = streams,
+  extra: Partial<BaseItemDto> = {},
+  defaults = { a: 1, s: undefined as number | undefined },
+): BaseItemDto => ({
   Id,
   RunTimeTicks: 1e10,
   MediaSources: [{ Id, MediaStreams: s, DefaultAudioStreamIndex: defaults.a, DefaultSubtitleStreamIndex: defaults.s }],

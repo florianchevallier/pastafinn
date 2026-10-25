@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 
 /** A disc seen from above: the menu lives on it. */
 export function DiscMark({ className }: { className?: string }) {

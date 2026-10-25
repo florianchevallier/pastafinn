@@ -1,16 +1,20 @@
 import { Link, Outlet, useNavigate } from '@tanstack/react-router'
 import { LogOut } from 'lucide-react'
+import { LangSwitch } from '@/components/LangSwitch'
+import { Wordmark } from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { Wordmark } from '@/components/Logo'
-import { LangSwitch } from '@/components/LangSwitch'
-import { signOut, useSession } from '@/lib/jellyfin'
 import { useI18n } from '@/lib/i18n'
+import { signOut, useSession } from '@/lib/jellyfin'
 
 export function AppShell() {
   const { t } = useI18n()
   const session = useSession()
   const navigate = useNavigate()
+
+  // Signed out (or token expired): render nothing while the redirect to /login happens,
+  // so pages never run without an API client.
+  if (!session) return null
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -20,11 +24,9 @@ export function AppShell() {
             <Wordmark />
           </Link>
           <div className="ml-auto flex items-center gap-2">
-            {session && (
-              <span className="hidden truncate text-sm text-muted-foreground sm:block">
-                {session.userName} · {session.serverName}
-              </span>
-            )}
+            <span className="hidden truncate text-sm text-muted-foreground sm:block">
+              {session.userName} · {session.serverName}
+            </span>
             <LangSwitch />
             <Tooltip>
               <TooltipTrigger asChild>

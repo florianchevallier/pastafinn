@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
-import { Search, Loader2 } from 'lucide-react'
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client/models'
+import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
+import { Loader2, Search } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { EmptyState, ErrorNote } from '@/components/States'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { EmptyState, ErrorNote } from '@/components/States'
+import { useI18n } from '@/lib/i18n'
 import { imageUrl, useApi } from '@/lib/jellyfin'
 import { useLibraries, useLibraryItems } from '@/lib/queries'
-import { useI18n } from '@/lib/i18n'
 
 export function LibraryPage() {
   const { t } = useI18n()
@@ -62,8 +62,8 @@ export function LibraryPage() {
       <div className="mt-8">
         {items.isPending ? (
           <PosterGrid>
-            {Array.from({ length: 12 }, (_, i) => (
-              <li key={i}>
+            {SKELETONS.map((n) => (
+              <li key={n}>
                 <Skeleton className="aspect-[2/3] rounded-lg" />
                 <Skeleton className="mt-2 h-4 w-3/4" />
               </li>
@@ -90,6 +90,8 @@ export function LibraryPage() {
   )
 }
 
+const SKELETONS = Array.from({ length: 12 }, (_, i) => i)
+
 function PosterGrid({ children }: { children: React.ReactNode }) {
   return <ul className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">{children}</ul>
 }
@@ -103,9 +105,17 @@ function Poster({ item }: { item: BaseItemDto }) {
       <Link to="/title/$itemId" params={{ itemId: item.Id! }} className="group block rounded-lg">
         <div className="relative aspect-[2/3] overflow-hidden rounded-lg border border-border bg-card">
           {src ? (
-            <img src={src} alt="" loading="lazy" decoding="async" className="size-full object-cover transition duration-500 ease-out-expo group-hover:scale-[1.04]" />
+            <img
+              src={src}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="size-full object-cover transition duration-500 ease-out-expo group-hover:scale-[1.04]"
+            />
           ) : (
-            <span aria-hidden className="grid size-full place-items-center p-3 text-center text-sm text-muted-foreground">{item.Name}</span>
+            <span aria-hidden className="grid size-full place-items-center p-3 text-center text-sm text-muted-foreground">
+              {item.Name}
+            </span>
           )}
           <span className="absolute inset-0 rounded-lg ring-primary/0 ring-inset transition group-hover:ring-2 group-hover:ring-primary/70" />
         </div>

@@ -8,7 +8,8 @@ const en = {
   'common.language': 'Language',
   'common.loading': 'Loading…',
   'error.network': 'Could not reach the server. Check the address, that the server is running, and that it allows this site (CORS).',
-  'error.mixedContent': 'This page is served over HTTPS, so the browser blocks a plain-HTTP server. Use the HTTPS address of your server, or run PastaFinn locally or with Docker.',
+  'error.mixedContent':
+    'This page is served over HTTPS, so the browser blocks a plain-HTTP server. Use the HTTPS address of your server, or run PastaFinn locally or with Docker.',
   'error.auth': 'Wrong username or password.',
   'error.generic': 'Something went wrong: {message}',
   'error.sessionExpired': 'Your session has expired. Sign in again.',
@@ -46,7 +47,8 @@ const en = {
   'settings.subtitleModeNone': 'Your subtitle mode is “None”, so Jellyfin ignores remembered subtitle tracks.',
   'settings.fix': 'Fix my settings',
   'settings.fixed': 'Settings updated.',
-  'settings.previousItem': 'Tip: if a Jellyfin app still switches tracks, turn off “Set audio/subtitle track based on previous item” in that app’s playback settings.',
+  'settings.previousItem':
+    'Tip: if a Jellyfin app still switches tracks, turn off “Set audio/subtitle track based on previous item” in that app’s playback settings.',
 
   'menu.reference': 'Reference episode',
   'menu.audio': 'Audio',
@@ -96,7 +98,8 @@ const fr: Record<MessageKey, string> = {
   'common.language': 'Langue',
   'common.loading': 'Chargement…',
   'error.network': 'Impossible de joindre le serveur. Vérifiez l’adresse, que le serveur tourne et qu’il autorise ce site (CORS).',
-  'error.mixedContent': 'Cette page est servie en HTTPS : le navigateur bloque un serveur en HTTP simple. Utilisez l’adresse HTTPS de votre serveur, ou lancez PastaFinn en local ou avec Docker.',
+  'error.mixedContent':
+    'Cette page est servie en HTTPS : le navigateur bloque un serveur en HTTP simple. Utilisez l’adresse HTTPS de votre serveur, ou lancez PastaFinn en local ou avec Docker.',
   'error.auth': 'Identifiant ou mot de passe incorrect.',
   'error.generic': 'Une erreur est survenue : {message}',
   'error.sessionExpired': 'Votre session a expiré. Reconnectez-vous.',
@@ -134,7 +137,8 @@ const fr: Record<MessageKey, string> = {
   'settings.subtitleModeNone': 'Votre mode de sous-titres est « Aucun » : Jellyfin ignore les sous-titres mémorisés.',
   'settings.fix': 'Corriger mes réglages',
   'settings.fixed': 'Réglages mis à jour.',
-  'settings.previousItem': 'Astuce : si une app Jellyfin change encore de piste, désactivez « Définir la piste audio/sous-titres d’après l’élément précédent » dans ses réglages de lecture.',
+  'settings.previousItem':
+    'Astuce : si une app Jellyfin change encore de piste, désactivez « Définir la piste audio/sous-titres d’après l’élément précédent » dans ses réglages de lecture.',
 
   'menu.reference': 'Épisode de référence',
   'menu.audio': 'Audio',
@@ -176,6 +180,7 @@ const fr: Record<MessageKey, string> = {
 
 export type Lang = 'en' | 'fr'
 const dicts: Record<Lang, Record<MessageKey, string>> = { en, fr }
+const plurals: Record<Lang, Intl.PluralRules> = { en: new Intl.PluralRules('en'), fr: new Intl.PluralRules('fr') }
 const STORAGE_KEY = 'pastafinn.lang'
 
 function detect(): Lang {
@@ -192,7 +197,7 @@ let current: Lang = detect()
 document.documentElement.lang = current
 const listeners = new Set<() => void>()
 
-export function setLang(lang: Lang) {
+function setLang(lang: Lang) {
   current = lang
   document.documentElement.lang = lang
   try {
@@ -200,16 +205,19 @@ export function setLang(lang: Lang) {
   } catch {
     // not persisted, still applied for this visit
   }
-  listeners.forEach((l) => l())
+  for (const l of listeners) l()
 }
 
-export function translate(lang: Lang, key: MessageKey, vars?: Record<string, string | number>) {
+function translate(lang: Lang, key: MessageKey, vars?: Record<string, string | number>) {
   return dicts[lang][key].replace(/\{(\w+)\}/g, (_, k: string) => String(vars?.[k] ?? `{${k}}`))
 }
 
 export function useI18n() {
   const lang = useSyncExternalStore(
-    (cb) => (listeners.add(cb), () => listeners.delete(cb)),
+    (cb) => {
+      listeners.add(cb)
+      return () => listeners.delete(cb)
+    },
     () => current,
   )
   return {
@@ -218,6 +226,6 @@ export function useI18n() {
     t: (key: MessageKey, vars?: Record<string, string | number>) => translate(lang, key, vars),
     /** Pluralized count, e.g. count('season', 3) → "3 seasons". */
     count: (noun: 'season' | 'episode', n: number) =>
-      translate(lang, `count.${noun}.${new Intl.PluralRules(lang).select(n) === 'one' ? 'one' : 'other'}`, { n }),
+      translate(lang, `count.${noun}.${plurals[lang].select(n) === 'one' ? 'one' : 'other'}`, { n }),
   }
 }

@@ -7,8 +7,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "oxlint",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "typecheck": "tsc -b",
     "test": "vitest run",
+    "e2e": "playwright test",
+    "knip": "knip",
+    "doctor": "react-doctor .",
+    "check": "npm run lint && npm run typecheck && npm test && npm run knip && npm run doctor",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -29,6 +35,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
+    "@biomejs/biome": "^2.6.3",
+    "@playwright/test": "^1.64.1",
     "@rolldown/plugin-babel": "^0.2.4",
     "@tailwindcss/vite": "^4.3.3",
     "@types/babel__core": "^7.20.5",
@@ -37,7 +45,8 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "babel-plugin-react-compiler": "^1.0.0",
-    "oxlint": "^1.88.0",
+    "knip": "^6.43.0",
+    "react-doctor": "^0.9.18",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.3",
     "vite": "^8.3.4",

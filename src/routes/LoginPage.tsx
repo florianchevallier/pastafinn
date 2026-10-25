@@ -1,17 +1,34 @@
-import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { ArrowLeft, Loader2, ShieldCheck } from 'lucide-react'
+import { type FormEvent, useEffect, useState } from 'react'
+import { LangSwitch } from '@/components/LangSwitch'
+import { DiscMark } from '@/components/Logo'
+import { ErrorNote } from '@/components/States'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { DiscMark } from '@/components/Logo'
-import { LangSwitch } from '@/components/LangSwitch'
-import { ErrorNote } from '@/components/States'
-import { findServer, signInWithPassword, startQuickConnect } from '@/lib/jellyfin'
 import { useI18n } from '@/lib/i18n'
+import { findServer, mayBeMixedContent, signInWithPassword, startQuickConnect } from '@/lib/jellyfin'
 
 const LAST_SERVER = 'pastafinn.lastServer'
+
+// Convenience only: storage can be unavailable (private mode), the form still works.
+function lastServer() {
+  try {
+    return localStorage.getItem(LAST_SERVER) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+function rememberServer(address: string) {
+  try {
+    localStorage.setItem(LAST_SERVER, address)
+  } catch {
+    // not remembered, nothing else to do
+  }
+}
 
 type Server = { url: string; name: string }
 
@@ -52,13 +69,7 @@ export function LoginPage() {
 
 function ServerStep({ onFound }: { onFound: (s: Server) => void }) {
   const { t } = useI18n()
-  const [address, setAddress] = useState(() => {
-    try {
-      return localStorage.getItem(LAST_SERVER) ?? ''
-    } catch {
-      return ''
-    }
-  })
+  const [address, setAddress] = useState(lastServer)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<unknown>(null)
   const [notFound, setNotFound] = useState(false)
@@ -68,20 +79,13 @@ function ServerStep({ onFound }: { onFound: (s: Server) => void }) {
     setBusy(true)
     setError(null)
     setNotFound(false)
-    try {
-      const found = await findServer(address)
-      if (!found) return setNotFound(true)
-      try {
-        localStorage.setItem(LAST_SERVER, address.trim())
-      } catch {
-        // convenience only
-      }
-      onFound(found)
-    } catch (err) {
-      setError(err)
-    } finally {
-      setBusy(false)
-    }
+    // No try/finally here: React Compiler skips components that use it.
+    const found = await findServer(address).catch((err: unknown) => ({ error: err }))
+    setBusy(false)
+    if (!found) return setNotFound(true)
+    if ('error' in found) return setError(found.error)
+    rememberServer(address.trim())
+    onFound(found)
   }
 
   return (
@@ -109,7 +113,7 @@ function ServerStep({ onFound }: { onFound: (s: Server) => void }) {
       </div>
       {notFound && (
         <p role="alert" className="text-sm text-destructive">
-          {t('login.notFound')}
+          {mayBeMixedContent(address) ? t('error.mixedContent') : t('login.notFound')}
         </p>
       )}
       {error != null && <ErrorNote error={error} />}
@@ -173,11 +177,27 @@ function PasswordForm({ server }: { server: Server }) {
     <form onSubmit={submit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="username">{t('login.username')}</Label>
-        <Input id="username" autoComplete="username" autoCapitalize="none" required autoFocus value={username} onChange={(e) => setUsername(e.target.value)} className="h-11 text-base" />
+        <Input
+          id="username"
+          autoComplete="username"
+          autoCapitalize="none"
+          required
+          autoFocus
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="h-11 text-base"
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="password">{t('login.password')}</Label>
-        <Input id="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="h-11 text-base" />
+        <Input
+          id="password"
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="h-11 text-base"
+        />
       </div>
       {error != null && <ErrorNote error={error} />}
       <Button type="submit" size="lg" className="h-11 w-full text-base" disabled={busy || !username.trim()}>
