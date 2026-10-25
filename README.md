@@ -14,27 +14,26 @@ Your show defaults to the wrong dub, or to no subtitles, and fixing it episode b
 
 ## Use it
 
-### Hosted
-
-Open **https://florianchevallier.github.io/pastafinn/**, enter your server address and sign in with your Jellyfin account or Quick Connect.
-
-The hosted page is served over HTTPS, so browsers only let it reach a server that also uses **HTTPS**. For a plain-HTTP server (for example `http://192.168.1.10:8096`), run PastaFinn yourself (below).
+PastaFinn is a static site: host it yourself, next to your Jellyfin. Then open it, enter your server address and sign in with your Jellyfin account or Quick Connect.
 
 ### Docker
 
 ```sh
-docker run -d --name pastafinn -p 8087:8080 ghcr.io/florianchevallier/pastafinn:latest
+git clone https://github.com/florianchevallier/pastafinn.git && cd pastafinn
+docker build -t pastafinn .
+docker run -d --name pastafinn -p 8087:8080 pastafinn
 ```
 
-Then open `http://<host>:8087`.
+Then open `http://<host>:8087`. The image is plain nginx serving the built files on port 8080, as a non-root user.
 
-### From source
+### Any static host
 
 ```sh
 npm ci
-npm run dev      # http://localhost:5173
-npm run build    # static files in dist/, host them anywhere
+npm run build    # static files in dist/, serve them from any web server or path
 ```
+
+If PastaFinn is served over **HTTPS**, browsers only let it reach a Jellyfin server that also uses HTTPS. For a plain-HTTP server (for example `http://192.168.1.10:8096`), serve PastaFinn over HTTP too, or put both behind the same HTTPS reverse proxy.
 
 ## Requirements
 

@@ -21,7 +21,8 @@ A Jellyfin counterpart to PASTA (Plex), rewritten from scratch. It runs 100% in 
 ## Operating Context
 
 - Opened occasionally, often on a desktop, sometimes on a phone from the couch.
-- Hosted on GitHub Pages or self-hosted with Docker. An HTTP-only LAN server needs the Docker or local build, because browsers block mixed content.
+- Self-hosted (Docker or any static host). Source is developed on the author's Forgejo (CI + deploy, infrastructure details in Forgejo variables) and mirrored to GitHub (source only, public).
+- An HTTPS page cannot reach an HTTP-only Jellyfin (mixed content): serve both the same way.
 - The server must allow the app's origin (CORS).
 
 ## Capabilities and Constraints

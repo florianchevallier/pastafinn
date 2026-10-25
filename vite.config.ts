@@ -6,7 +6,7 @@ import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  // Relative base so the same build works on GitHub Pages (/pastafinn/) and in Docker (/)
+  // Relative base so the same build works at any path (/, /pastafinn/, ...)
   base: './',
   define: { __APP_VERSION__: JSON.stringify(process.env.npm_package_version) },
   plugins: [react(), babel({ presets: [reactCompilerPreset()] }), tailwindcss()],
